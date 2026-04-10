@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, query, orderBy, onSnapshot, where, getDocs } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, where, doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -27,9 +27,13 @@ export default function ChatPage() {
         snap.docs.map(async (d) => {
           const data = d.data();
           const otherUid = data.participants.find((p) => p !== currentUser.uid);
-          const userSnap = await getDocs(query(collection(db, 'users'), where('uid', '==', otherUid)));
-          const otherUser = userSnap.docs[0]?.data();
-          return { id: d.id, ...data, otherUser };
+          try {
+            const userSnap = await getDoc(doc(db, 'users', otherUid));
+            const otherUser = userSnap.exists() ? { id: userSnap.id, ...userSnap.data() } : { id: otherUid, displayName: 'Unknown User' };
+            return { id: d.id, ...data, otherUser };
+          } catch {
+            return { id: d.id, ...data, otherUser: { id: otherUid, displayName: 'Unknown User' } };
+          }
         })
       );
       setConversations(convs);
@@ -45,8 +49,21 @@ export default function ChatPage() {
     }
   }, [chatId, conversations]);
 
-  const getOrCreateConversation = (userId) => {
-    navigate(`/private/${userId}`);
+  const clearUnread = async (convId) => {
+    if (!currentUser || !convId) return;
+    try {
+      await setDoc(
+        doc(db, 'conversations', convId),
+        { unread: { [currentUser.uid]: 0 } },
+        { merge: true }
+      );
+    } catch {}
+  };
+
+  const handleSelectConv = (conv) => {
+    setSelectedUser(conv.otherUser);
+    clearUnread(conv.id);
+    navigate(`/chat/${conv.id}`);
   };
 
   if (selectedUser || chatId) {
@@ -58,10 +75,7 @@ export default function ChatPage() {
             conversations={conversations}
             currentUser={currentUser}
             selectedId={chatId}
-            onSelect={(conv) => {
-              setSelectedUser(conv.otherUser);
-              navigate(`/chat/${conv.id}`);
-            }}
+            onSelect={handleSelectConv}
             loading={loading}
           />
         </div>
@@ -82,10 +96,7 @@ export default function ChatPage() {
           conversations={conversations}
           currentUser={currentUser}
           selectedId={chatId}
-          onSelect={(conv) => {
-            setSelectedUser(conv.otherUser);
-            navigate(`/chat/${conv.id}`);
-          }}
+          onSelect={handleSelectConv}
           loading={loading}
         />
       </div>
@@ -130,42 +141,45 @@ function ConversationList({ conversations, currentUser, selectedId, onSelect, lo
             <p className="text-xs mt-1">Go to Users to start chatting</p>
           </div>
         ) : (
-          conversations.map((conv) => (
-            <button
-              key={conv.id}
-              onClick={() => onSelect(conv)}
-              className={`w-full flex items-center gap-3 p-4 text-left hover:bg-surface-50 dark:hover:bg-surface-800 transition-all ${
-                selectedId === conv.id ? 'bg-primary-50 dark:bg-primary-950/30' : ''
-              }`}
-            >
-              <Avatar
-                src={conv.otherUser?.photoURL}
-                name={conv.otherUser?.displayName}
-                size={48}
-                online={conv.otherUser?.online}
-              />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-surface-900 dark:text-white truncate">
-                    {conv.otherUser?.displayName || 'User'}
-                  </span>
-                  <span className="text-xs text-surface-400 flex-shrink-0 ml-2">
-                    {formatChatListTime(conv.lastMessageAt)}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between mt-0.5">
-                  <p className="text-xs text-surface-500 truncate">
-                    {truncateText(conv.lastMessage || 'Start chatting', 40)}
-                  </p>
-                  {conv.unread?.[currentUser?.uid] > 0 && (
-                    <span className="flex-shrink-0 ml-1 w-5 h-5 bg-primary-500 text-white text-xs rounded-full flex items-center justify-center">
-                      {conv.unread[currentUser.uid]}
+          conversations.map((conv) => {
+            const unreadCount = conv.unread?.[currentUser?.uid] || 0;
+            return (
+              <button
+                key={conv.id}
+                onClick={() => onSelect(conv)}
+                className={`w-full flex items-center gap-3 p-4 text-left hover:bg-surface-50 dark:hover:bg-surface-800 transition-all ${
+                  selectedId === conv.id ? 'bg-primary-50 dark:bg-primary-950/30' : ''
+                }`}
+              >
+                <Avatar
+                  src={conv.otherUser?.photoURL}
+                  name={conv.otherUser?.displayName}
+                  size={48}
+                  online={conv.otherUser?.online}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <span className={`text-sm truncate ${unreadCount > 0 ? 'font-bold text-surface-900 dark:text-white' : 'font-semibold text-surface-900 dark:text-white'}`}>
+                      {conv.otherUser?.displayName || 'User'}
                     </span>
-                  )}
+                    <span className="text-xs text-surface-400 flex-shrink-0 ml-2">
+                      {formatChatListTime(conv.lastMessageAt)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between mt-0.5">
+                    <p className={`text-xs truncate ${unreadCount > 0 ? 'font-semibold text-surface-700 dark:text-surface-300' : 'text-surface-500'}`}>
+                      {truncateText(conv.lastMessage || 'Start chatting', 40)}
+                    </p>
+                    {unreadCount > 0 && (
+                      <span className="flex-shrink-0 ml-1 w-5 h-5 bg-primary-500 text-white text-xs rounded-full flex items-center justify-center">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </button>
-          ))
+              </button>
+            );
+          })
         )}
       </div>
     </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   collection, query, orderBy, onSnapshot, addDoc, serverTimestamp,
-  doc, getDoc, setDoc, where, updateDoc, getDocs
+  doc, setDoc, updateDoc, increment, getDoc
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
@@ -31,19 +31,18 @@ export default function PrivateChatWindow({ otherUserId, onBack }) {
   const chatId = getChatId(currentUser?.uid, otherUserId);
 
   useEffect(() => {
-    async function loadUser() {
-      const snap = await getDoc(doc(db, 'users', otherUserId));
+    if (!otherUserId) return;
+    const unsub = onSnapshot(doc(db, 'users', otherUserId), (snap) => {
       if (snap.exists()) setOtherUser({ id: snap.id, ...snap.data() });
-    }
-    loadUser();
+    });
+    return unsub;
   }, [otherUserId]);
 
   useEffect(() => {
     if (!chatId) return;
     const q = query(
       collection(db, 'privateChats', chatId, 'messages'),
-      orderBy('createdAt', 'asc'),
-      
+      orderBy('createdAt', 'asc')
     );
     const unsub = onSnapshot(q, (snap) => {
       setMessages(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
@@ -53,10 +52,25 @@ export default function PrivateChatWindow({ otherUserId, onBack }) {
   }, [chatId]);
 
   useEffect(() => {
+    if (!chatId || !currentUser) return;
+    const clearUnread = async () => {
+      try {
+        await setDoc(
+          doc(db, 'conversations', chatId),
+          { unread: { [currentUser.uid]: 0 } },
+          { merge: true }
+        );
+      } catch {}
+    };
+    clearUnread();
+  }, [chatId, currentUser]);
+
+  useEffect(() => {
     if (!chatId || !otherUserId) return;
     const typingRef = doc(db, 'privateTyping', `${chatId}_${otherUserId}`);
     const unsub = onSnapshot(typingRef, (snap) => {
-      if (snap.exists()) setTypingOther(snap.data().typing);
+      if (snap.exists()) setTypingOther(snap.data().typing === true);
+      else setTypingOther(false);
     });
     return unsub;
   }, [chatId, otherUserId]);
@@ -83,10 +97,11 @@ export default function PrivateChatWindow({ otherUserId, onBack }) {
     if (!text.trim() || sending) return;
     setSending(true);
     setTypingStatus(false);
+    const msgText = text.trim();
+    setText('');
     try {
-      const msgRef = collection(db, 'privateChats', chatId, 'messages');
-      await addDoc(msgRef, {
-        text: text.trim(),
+      await addDoc(collection(db, 'privateChats', chatId, 'messages'), {
+        text: msgText,
         uid: currentUser.uid,
         displayName: userProfile?.displayName || 'Anonymous',
         photoURL: userProfile?.photoURL || null,
@@ -96,19 +111,21 @@ export default function PrivateChatWindow({ otherUserId, onBack }) {
       });
       await setDoc(doc(db, 'conversations', chatId), {
         participants: [currentUser.uid, otherUserId],
-        lastMessage: text.trim(),
+        lastMessage: msgText,
         lastMessageAt: serverTimestamp(),
         lastMessageBy: currentUser.uid,
+        unread: { [otherUserId]: increment(1), [currentUser.uid]: 0 },
       }, { merge: true });
-      setText('');
     } catch {
       toast.error('Failed to send message');
+      setText(msgText);
     } finally {
       setSending(false);
     }
   };
 
   const handleMediaUpload = async (result) => {
+    const label = result.resourceType === 'video' ? 'Sent a video' : 'Sent a photo';
     try {
       await addDoc(collection(db, 'privateChats', chatId, 'messages'), {
         text: '',
@@ -123,9 +140,10 @@ export default function PrivateChatWindow({ otherUserId, onBack }) {
       });
       await setDoc(doc(db, 'conversations', chatId), {
         participants: [currentUser.uid, otherUserId],
-        lastMessage: result.resourceType === 'video' ? 'Sent a video' : 'Sent a photo',
+        lastMessage: label,
         lastMessageAt: serverTimestamp(),
         lastMessageBy: currentUser.uid,
+        unread: { [otherUserId]: increment(1), [currentUser.uid]: 0 },
       }, { merge: true });
     } catch {
       toast.error('Failed to send media');
@@ -163,7 +181,8 @@ export default function PrivateChatWindow({ otherUserId, onBack }) {
   const handleBlock = async () => {
     try {
       const userRef = doc(db, 'users', currentUser.uid);
-      const blocked = userProfile?.blockedUsers || [];
+      const snap = await getDoc(userRef);
+      const blocked = snap.data()?.blockedUsers || [];
       if (!blocked.includes(otherUserId)) {
         await updateDoc(userRef, { blockedUsers: [...blocked, otherUserId] });
         toast.success('User blocked');
@@ -233,6 +252,14 @@ export default function PrivateChatWindow({ otherUserId, onBack }) {
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-full text-surface-400 text-sm">
+            <svg className="w-10 h-10 mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+            <p>Say hello to {otherUser?.displayName || 'this user'}!</p>
+          </div>
+        )}
         {messages.map((msg) => {
           const isMe = msg.uid === currentUser?.uid;
           return (
@@ -256,7 +283,7 @@ export default function PrivateChatWindow({ otherUserId, onBack }) {
                   <span className="text-xs text-surface-400">{formatMessageTime(msg.createdAt)}</span>
                   {isMe && (
                     <span className="text-xs text-surface-400">
-                      {msg.status === 'seen' ? 'Seen' : msg.status === 'delivered' ? 'Delivered' : 'Sent'}
+                      {msg.status === 'seen' ? '✓✓ Seen' : msg.status === 'delivered' ? '✓✓' : '✓'}
                     </span>
                   )}
                   {msg.text && !isMe && (
@@ -272,6 +299,16 @@ export default function PrivateChatWindow({ otherUserId, onBack }) {
             </div>
           );
         })}
+        {typingOther && (
+          <div className="flex gap-3">
+            <Avatar src={otherUser?.photoURL} name={otherUser?.displayName} size={32} />
+            <div className="message-bubble-other">
+              <div className="typing-indicator flex gap-1 py-0.5">
+                <span /><span /><span />
+              </div>
+            </div>
+          </div>
+        )}
         <div ref={bottomRef} />
       </div>
 

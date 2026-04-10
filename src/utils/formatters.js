@@ -2,28 +2,48 @@ import { formatDistanceToNow, format, isToday, isYesterday } from 'date-fns';
 
 export function formatMessageTime(timestamp) {
   if (!timestamp) return '';
-  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-  return format(date, 'HH:mm');
+  try {
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    if (isNaN(date.getTime())) return '';
+    return format(date, 'HH:mm');
+  } catch {
+    return '';
+  }
 }
 
 export function formatLastSeen(timestamp) {
   if (!timestamp) return 'a while ago';
-  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-  return formatDistanceToNow(date, { addSuffix: true });
+  try {
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    if (isNaN(date.getTime())) return 'a while ago';
+    return formatDistanceToNow(date, { addSuffix: true });
+  } catch {
+    return 'a while ago';
+  }
 }
 
 export function formatChatListTime(timestamp) {
   if (!timestamp) return '';
-  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-  if (isToday(date)) return format(date, 'HH:mm');
-  if (isYesterday(date)) return 'Yesterday';
-  return format(date, 'MMM d');
+  try {
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    if (isNaN(date.getTime())) return '';
+    if (isToday(date)) return format(date, 'HH:mm');
+    if (isYesterday(date)) return 'Yesterday';
+    return format(date, 'MMM d');
+  } catch {
+    return '';
+  }
 }
 
 export function formatPostTime(timestamp) {
   if (!timestamp) return '';
-  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-  return formatDistanceToNow(date, { addSuffix: true });
+  try {
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    if (isNaN(date.getTime())) return '';
+    return formatDistanceToNow(date, { addSuffix: true });
+  } catch {
+    return '';
+  }
 }
 
 export function getCountryFlag(countryCode) {
