@@ -86,9 +86,7 @@ export default function AuthPage() {
           ))}
         </div>
         <div className="relative text-center text-white max-w-md">
-          <div className="w-20 h-20 bg-white/20 backdrop-blur rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-glow-primary">
-            <span className="text-4xl font-display font-black text-white">T</span>
-          </div>
+          <img src="/logo.png" alt="Talksy" className="w-24 h-24 mx-auto mb-6 drop-shadow-lg" />
           <h1 className="text-5xl font-display font-black mb-4">Talksy</h1>
           <p className="text-xl text-white/80 leading-relaxed">
             Connect with people from every corner of the world. Share moments, chat instantly, and build friendships across borders.
@@ -115,9 +113,7 @@ export default function AuthPage() {
       <div className="flex-1 flex items-center justify-center p-6 bg-white dark:bg-surface-950">
         <div className="w-full max-w-md animate-fade-in">
           <div className="lg:hidden flex items-center gap-2 mb-8 justify-center">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-primary flex items-center justify-center">
-              <span className="text-white font-bold">T</span>
-            </div>
+            <img src="/logo.png" alt="Talksy" className="w-10 h-10" />
             <span className="font-display font-bold text-2xl gradient-text">Talksy</span>
           </div>
 

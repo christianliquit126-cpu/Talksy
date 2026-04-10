@@ -172,9 +172,7 @@ export function AuthProvider({ children }) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white p-6">
         <div className="max-w-md text-center">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-fuchsia-500 to-orange-400 flex items-center justify-center mx-auto mb-4">
-            <span className="text-3xl font-black text-white" style={{ fontFamily: 'Poppins, sans-serif' }}>T</span>
-          </div>
+          <img src="/logo.png" alt="Talksy" className="w-16 h-16 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-gray-800 mb-2">Firebase Not Configured</h2>
           <p className="text-sm text-gray-500 mb-4">
             To use Talksy, add your Firebase and Cloudinary credentials.
@@ -203,9 +201,7 @@ export function AuthProvider({ children }) {
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#fff', fontFamily: 'Inter, sans-serif' }}>
-        <div style={{ width: 64, height: 64, borderRadius: 16, background: 'linear-gradient(135deg, #d946ef 0%, #f97316 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16, boxShadow: '0 0 20px rgba(217,70,239,0.3)' }}>
-          <span style={{ fontSize: 28, fontWeight: 900, color: '#fff', fontFamily: 'Poppins, sans-serif' }}>T</span>
-        </div>
+        <img src="/logo.png" alt="Talksy" style={{ width: 64, height: 64, marginBottom: 16 }} />
         <div style={{ width: 32, height: 32, border: '3px solid #d946ef', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', marginBottom: 12 }} />
         <p style={{ fontSize: 14, color: '#71717a' }}>Loading Talksy...</p>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -217,9 +213,7 @@ export function AuthProvider({ children }) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white p-6">
         <div className="max-w-md text-center">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-fuchsia-500 to-orange-400 flex items-center justify-center mx-auto mb-4">
-            <span className="text-3xl font-black text-white" style={{ fontFamily: 'Poppins, sans-serif' }}>T</span>
-          </div>
+          <img src="/logo.png" alt="Talksy" className="w-16 h-16 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-gray-800 mb-2">Firebase Not Configured</h2>
           <p className="text-sm text-gray-500 mb-4">
             To use Talksy, you need to configure your Firebase credentials.
