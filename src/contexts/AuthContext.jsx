@@ -170,16 +170,16 @@ export function AuthProvider({ children }) {
 
   if (!isConfigured && !loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white p-6">
-        <div className="max-w-md text-center">
-          <img src="/logo.png" alt="Talksy" className="w-16 h-16 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-800 mb-2">Firebase Not Configured</h2>
-          <p className="text-sm text-gray-500 mb-4">
-            To use Talksy, add your Firebase and Cloudinary credentials.
-            Copy <code className="bg-gray-100 px-1 rounded">.env.example</code> to{' '}
-            <code className="bg-gray-100 px-1 rounded">.env</code> and fill in your project details.
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#0d0d1a', padding: '24px', fontFamily: 'Inter, sans-serif' }}>
+        <div style={{ maxWidth: 440, textAlign: 'center' }}>
+          <img src="/logo.png" alt="Talksy" style={{ width: 64, height: 64, margin: '0 auto 20px' }} />
+          <h2 style={{ fontSize: 22, fontWeight: 700, color: '#f1f0ff', marginBottom: 8 }}>Firebase Not Configured</h2>
+          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', marginBottom: 20, lineHeight: 1.6 }}>
+            To use Talksy, add your Firebase credentials. Copy{' '}
+            <code style={{ background: 'rgba(255,255,255,0.1)', padding: '1px 6px', borderRadius: 4 }}>.env.example</code> to{' '}
+            <code style={{ background: 'rgba(255,255,255,0.1)', padding: '1px 6px', borderRadius: 4 }}>.env</code> and fill in your project details.
           </p>
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-left text-xs text-gray-600 font-mono space-y-1">
+          <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, padding: 16, textAlign: 'left', fontSize: 12, fontFamily: 'monospace', color: 'rgba(167,139,250,0.9)', lineHeight: 1.8 }}>
             <p>VITE_FIREBASE_API_KEY=...</p>
             <p>VITE_FIREBASE_AUTH_DOMAIN=...</p>
             <p>VITE_FIREBASE_PROJECT_ID=...</p>
@@ -189,9 +189,9 @@ export function AuthProvider({ children }) {
             <p>VITE_CLOUDINARY_CLOUD_NAME=...</p>
             <p>VITE_CLOUDINARY_UPLOAD_PRESET=...</p>
           </div>
-          <p className="text-xs text-gray-400 mt-4">
-            Get Firebase credentials at <strong>console.firebase.google.com</strong>
-            <br />Get Cloudinary credentials at <strong>cloudinary.com</strong>
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', marginTop: 16 }}>
+            Get Firebase credentials at <strong style={{ color: 'rgba(167,139,250,0.8)' }}>console.firebase.google.com</strong>
+            <br />Get Cloudinary credentials at <strong style={{ color: 'rgba(167,139,250,0.8)' }}>cloudinary.com</strong>
           </p>
         </div>
       </div>
@@ -200,10 +200,10 @@ export function AuthProvider({ children }) {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#fff', fontFamily: 'Inter, sans-serif' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#0d0d1a', fontFamily: 'Inter, sans-serif' }}>
         <img src="/logo.png" alt="Talksy" style={{ width: 64, height: 64, marginBottom: 16 }} />
-        <div style={{ width: 32, height: 32, border: '3px solid #d946ef', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', marginBottom: 12 }} />
-        <p style={{ fontSize: 14, color: '#71717a' }}>Loading Talksy...</p>
+        <div style={{ width: 32, height: 32, border: '3px solid #7c3aed', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', marginBottom: 12 }} />
+        <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>Loading Talksy...</p>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
@@ -211,22 +211,16 @@ export function AuthProvider({ children }) {
 
   if (firebaseError) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white p-6">
-        <div className="max-w-md text-center">
-          <img src="/logo.png" alt="Talksy" className="w-16 h-16 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-800 mb-2">Firebase Not Configured</h2>
-          <p className="text-sm text-gray-500 mb-4">
-            To use Talksy, you need to configure your Firebase credentials.
-            Copy <code className="bg-gray-100 px-1 rounded">.env.example</code> to{' '}
-            <code className="bg-gray-100 px-1 rounded">.env</code> and fill in your Firebase project details.
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#0d0d1a', padding: '24px', fontFamily: 'Inter, sans-serif' }}>
+        <div style={{ maxWidth: 440, textAlign: 'center' }}>
+          <img src="/logo.png" alt="Talksy" style={{ width: 64, height: 64, margin: '0 auto 20px' }} />
+          <h2 style={{ fontSize: 22, fontWeight: 700, color: '#f1f0ff', marginBottom: 8 }}>Firebase Error</h2>
+          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', marginBottom: 16, lineHeight: 1.6 }}>
+            {firebaseError}
           </p>
-          <div className="bg-gray-50 rounded-xl p-4 text-left text-xs text-gray-600 font-mono space-y-1">
-            <p>VITE_FIREBASE_API_KEY=...</p>
-            <p>VITE_FIREBASE_AUTH_DOMAIN=...</p>
-            <p>VITE_FIREBASE_PROJECT_ID=...</p>
-            <p>VITE_CLOUDINARY_CLOUD_NAME=...</p>
-            <p>VITE_CLOUDINARY_UPLOAD_PRESET=...</p>
-          </div>
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>
+            Make sure your Firebase credentials are set correctly.
+          </p>
         </div>
       </div>
     );

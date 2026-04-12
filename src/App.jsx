@@ -2,8 +2,11 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Layout from './components/Layout';
+import LandingPage from './pages/LandingPage';
 import AuthPage from './pages/AuthPage';
-import HomePage from './pages/HomePage';
+import SetupProfilePage from './pages/SetupProfilePage';
+import DashboardPage from './pages/DashboardPage';
+import RandomChatPage from './pages/RandomChatPage';
 import ChatPage from './pages/ChatPage';
 import UsersPage from './pages/UsersPage';
 import MomentsPage from './pages/MomentsPage';
@@ -11,11 +14,11 @@ import ProfilePage from './pages/ProfilePage';
 import SettingsPage from './pages/SettingsPage';
 import UserProfilePage from './pages/UserProfilePage';
 import PrivateChatPage from './pages/PrivateChatPage';
-import SetupProfilePage from './pages/SetupProfilePage';
 
 function ProtectedRoute({ children }) {
-  const { currentUser, userProfile } = useAuth();
-  if (!currentUser) return <Navigate to="/auth" replace />;
+  const { currentUser, userProfile, loading } = useAuth();
+  if (loading) return null;
+  if (!currentUser) return <Navigate to="/" replace />;
   if (currentUser && !userProfile?.country && !currentUser.isAnonymous) {
     return <Navigate to="/setup" replace />;
   }
@@ -23,11 +26,13 @@ function ProtectedRoute({ children }) {
 }
 
 function AppRoutes() {
-  const { currentUser } = useAuth();
+  const { currentUser, loading } = useAuth();
+  if (loading) return null;
 
   return (
     <Routes>
-      <Route path="/auth" element={currentUser ? <Navigate to="/" replace /> : <AuthPage />} />
+      <Route path="/" element={currentUser ? <Navigate to="/dashboard" replace /> : <LandingPage />} />
+      <Route path="/auth" element={currentUser ? <Navigate to="/dashboard" replace /> : <AuthPage />} />
       <Route path="/setup" element={<SetupProfilePage />} />
       <Route
         path="/"
@@ -37,7 +42,8 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       >
-        <Route index element={<HomePage />} />
+        <Route path="dashboard" element={<DashboardPage />} />
+        <Route path="random" element={<RandomChatPage />} />
         <Route path="chat" element={<ChatPage />} />
         <Route path="chat/:chatId" element={<ChatPage />} />
         <Route path="users" element={<UsersPage />} />
@@ -62,10 +68,13 @@ export default function App() {
           toastOptions={{
             duration: 3000,
             style: {
-              background: '#18181b',
-              color: '#f4f4f5',
-              borderRadius: '12px',
+              background: 'rgba(26, 10, 46, 0.95)',
+              backdropFilter: 'blur(20px)',
+              color: '#f1f0ff',
+              borderRadius: '16px',
               fontSize: '14px',
+              border: '1px solid rgba(124, 58, 237, 0.3)',
+              boxShadow: '0 8px 32px rgba(124, 58, 237, 0.2)',
             },
           }}
         />

@@ -53,5 +53,31 @@ service cloud.firestore {
       allow create: if isSignedIn();
       allow read: if false;
     }
+
+    // Random Chat matchmaking queue
+    match /randomQueue/{userId} {
+      allow read: if isSignedIn();
+      allow create, update: if isOwner(userId);
+      allow delete: if isSignedIn();
+    }
+
+    // Random Chat rooms
+    match /randomChats/{chatId} {
+      allow read: if isSignedIn() && (request.auth.uid in resource.data.participants);
+      allow create: if isSignedIn() && (request.auth.uid in request.resource.data.participants);
+      allow update: if isSignedIn() && (request.auth.uid in resource.data.participants);
+      allow delete: if isSignedIn() && (request.auth.uid in resource.data.participants);
+
+      match /messages/{messageId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+        allow update, delete: if isOwner(resource.data.uid);
+      }
+    }
+
+    // Random Chat typing indicators
+    match /randomTyping/{docId} {
+      allow read, write: if isSignedIn();
+    }
   }
 }
